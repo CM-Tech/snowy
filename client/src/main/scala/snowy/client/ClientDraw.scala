@@ -16,7 +16,7 @@ object ClientDraw {
   gameCanvas.height = size.y.toInt
   val ctx = gameCanvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
 
-  def drawState(snowballs: Store[Snowball], sleds: Store[Sled], mySled: Sled, trees: Store[Tree], border: Vec2d, scoreboard: Scoreboard): Unit = {
+  def drawState(snowballs: Store[Snowball], sleds: Store[Sled], mySled: Sled, tracks: Seq[Seq[Track]],trees: Store[Tree], border: Vec2d, scoreboard: Scoreboard): Unit = {
     clearScreen()
 
     var portal = new Portal(
@@ -24,14 +24,16 @@ object ClientDraw {
         mySled.pos - Vec2d(1000, 500),
         Vec2d(2000, 1000)
       )
-    )(sleds.items, snowballs.items, trees.items)
+    )(sleds.items, snowballs.items, trees.items, tracks)
 
     portal = portal.convertToScreen(size, border)
     new DrawGrid(mySled.pos * portal.scale, portal.scale)
 
-
     portal.snowballs.foreach { snowball =>
       new DrawSnowball(snowball.pos, snowball.size / 2 * portal.scale)
+    }
+    portal.tracks.foreach { sledTracks =>
+      new DrawTrack(sledTracks, 35 * portal.scale)
     }
     portal.sleds.foreach { sled =>
       new DrawSled(sled.userName, sled.pos, 35 * portal.scale, sled.healthPercent, sled.turretRotation, sled.rotation, bodyRed)
@@ -47,7 +49,7 @@ object ClientDraw {
         Vec2d(0, 0),
         border
       )
-    )(Set(mySled), Set(), trees.items)
+    )(Set(mySled), Set(), trees.items, Seq())
     val miniscale = Math.max(border.x / size.x, border.y / size.y) * 2
     val minimap = rawminimap.convertToScreen(border / miniscale, border)
     val miniscaled = border / miniscale
@@ -81,7 +83,7 @@ object ClientDraw {
   }
 
   def clearScreen(): Unit = {
-    ctx.fillStyle = clearColor
+    ctx.fillStyle = clearColor.toString
     ctx.fillRect(0, 0, size.x, size.y)
   }
 

@@ -10,7 +10,7 @@ class DrawSled(name: String, pos: Vec2d, size: Double, health: Double, cannonRot
   //val size = 35.0
 
   //Global strokeStyle
-  ctx.strokeStyle = lineColors
+  ctx.strokeStyle = lineColors.toString
 
   //Draw two skis
   ctx.lineCap = "round"

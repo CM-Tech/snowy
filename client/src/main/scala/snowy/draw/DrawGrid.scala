@@ -6,9 +6,9 @@ import vector.Vec2d
 
 
 class DrawGrid(sled: Vec2d, scale: Double) {
-  ctx.strokeStyle = lineColors
+  ctx.strokeStyle = (lineColors * 2.4).toString
   val lineGap = (10 * scale).toInt
-  ctx.lineWidth = .1
+  ctx.lineWidth = 1
   for (i <- 0 to size.x.toInt / lineGap) {
     ctx.beginPath()
     ctx.moveTo(i * lineGap - sled.x % lineGap, 0)

@@ -7,12 +7,14 @@ class Portal(portalRect: Rect) {
   var sleds = Seq[Sled]()
   var trees = Seq[Tree]()
   var snowballs = Seq[Snowball]()
+  var tracks = Seq[Seq[Track]]()
   var scale = 0.0
 
-  def apply(tsleds: Set[Sled], tsnowballs: Set[Snowball], ttrees: Set[Tree]): Portal = {
+  def apply(tsleds: Set[Sled], tsnowballs: Set[Snowball], ttrees: Set[Tree], ttracks: Seq[Seq[Track]]): Portal = {
     sleds = tsleds.toSeq
     snowballs = tsnowballs.toSeq
     trees = ttrees.toSeq
+    tracks = ttracks
     this
   }
 
@@ -70,6 +72,7 @@ class Portal(portalRect: Rect) {
     trees = trees.flatMap(transformToScreen(_))
     sleds = sleds.flatMap(transformToScreen(_))
     snowballs = snowballs.flatMap(transformToScreen(_))
+    tracks = tracks.map(_.flatMap(transformToScreen(_)))
 
     this
   }

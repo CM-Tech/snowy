@@ -29,6 +29,7 @@ object PlayId {
   type SledId = PlayId[Sled]
   type BallId = PlayId[Snowball]
   type TreeId = PlayId[Tree]
+  type TrackId = PlayId[Track]
 }
 
 import PlayId._
@@ -144,6 +145,20 @@ case class Snowball(id: BallId = PlayfieldObject.nextId(),
   type MyType = Snowball
 
   override def updatePos(newPos: Vec2d): Snowball = {
+    this.copy(pos = newPos)
+  }
+}
+
+case class Track(id: TrackId = PlayfieldObject.nextId(),
+                      pos: Vec2d,
+                      size: Double,
+                      leftSki: Vec2d,
+                      rightSki: Vec2d,
+                      spawned: Long
+                     ) extends PlayfieldObject {
+  type MyType = Track
+
+  override def updatePos(newPos: Vec2d): Track = {
     this.copy(pos = newPos)
   }
 }

@@ -5,7 +5,7 @@ import snowy.client.ClientDraw.ctx
 import vector.Vec2d
 
 class DrawSnowball(pos: Vec2d, size: Double) {
-  ctx.strokeStyle = lineColors
+  ctx.strokeStyle = lineColors.toString
   ctx.fillStyle = snowball
   ctx.lineWidth = size / 10
   ctx.beginPath()

@@ -14,6 +14,9 @@ object ClientMain extends JSApp {
   //When the users sends the login form, send it as a username to the server
   document.getElementById("login-form").asInstanceOf[html.Form].onsubmit = { event: Event =>
     //Connect to the WebSocket server
+    // TODO use
+    //   case Some(connection) =>
+    //   case None =>
     connected match {
       case x if x.isEmpty => connected = Some(new Connection(document.getElementById("username").asInstanceOf[html.Input].value))
       case x if x.isDefined => connected.get.reSpawn()

@@ -13,11 +13,11 @@ class TestReJoin extends PropSpec with PropertyChecks {
       import testApi.{send, skipToMessage}
 
       send(Join("testUser"))
-      val origSled = skipToMessage { case State(mySled, _, _) => mySled }
+      val origSled = skipToMessage { case State(mySled, _, _, _) => mySled }
       send(TestDie)
       skipToMessage { case Died => }
       send(ReJoin())
-      val newSled = skipToMessage { case State(mySled, _, _) => mySled }
+      val newSled = skipToMessage { case State(mySled, _, _, _) => mySled }
       newSled.id !== origSled.id
 
       Future.successful(Unit)

@@ -14,6 +14,7 @@ object GameState {
   var serverSnowballs = Store[Snowball]()
   var serverSleds = Store[Sled]()
   var serverMySled = Sled.dummy
+  var serverTracks = Seq[Seq[Track]]()
 
   //When the client receives the state of canvas, draw all sleds
   def receivedState(state: State): Unit = {
@@ -21,7 +22,7 @@ object GameState {
     serverSnowballs = Store(state.snowballs)
     serverSleds = Store(state.sleds)
     serverMySled = state.mySled
-
-    drawState(serverSnowballs, serverSleds, serverMySled, serverTrees, gPlayField, scoreboard)
+    serverTracks = state.tracks
+    drawState(serverSnowballs, serverSleds, serverMySled, serverTracks, serverTrees, gPlayField, scoreboard)
   }
 }

@@ -44,6 +44,7 @@ class GameControl(api: AppHostApi) extends AppController with GameState {
     expireSnowballs()
     snowballs = moveSnowballs(snowballs, deltaSeconds)
 
+    updateTracks()
     val (newSleds, moveAwards) = moveSleds(sleds, deltaSeconds)
     sleds = newSleds
     val collisionAwards = checkCollisions()
@@ -368,6 +369,65 @@ class GameControl(api: AppHostApi) extends AppController with GameState {
       case (id, user) if !user.robot =>
         val scoreboard = Scoreboard(user.score, scores)
         api.send(write[GameClientMessage](scoreboard), id)
+    }
+  }
+
+  private def updateTracks(): Unit = {
+    removeOldTracks()
+    addNewTracks()
+  }
+
+  /** @return a new track element at the current sled position */
+  private def newTrack(sled: Sled): Track = {
+    Track(
+      pos = sled.pos,
+      size = 10,
+      leftSki = Vec2d.fromRotation(sled.rotation).leftPerpendicular * (sled.radius - 1),
+      rightSki = Vec2d.fromRotation(sled.rotation).rightPerpendicular * (sled.radius - 1),
+      spawned = gameTime)
+  }
+
+  private def removeOldTracks(): Unit = {
+    // TODO move to GameConstants
+    /** track elements disappear after this many millis */
+    val trackLifetime = 5000
+
+    tracks = tracks.foldLeft(tracks) { case (trackMap, (id, list)) =>
+      val newList = list.filter(_.spawned + trackLifetime > gameTime)
+      trackMap.updated(id, newList)
+    }
+  }
+
+  /** Add a new track element at the current position of each sled,
+    * unless this game turn is within trackRecordInterval of the last time we recorded tracks */
+  private def addNewTracks(): Unit = {
+    // TODO move to GameConstants
+    /** milliseconds between adding Track elements */
+    val trackRecordInterval = 500
+
+    if (gameTime - lastTracks > trackRecordInterval) {
+      lastTracks = gameTime
+
+      // create a new track element for every sled
+      val appendTracks = sleds.items.map { sled =>
+        sled.id -> newTrack(sled)
+      }
+
+      // add new track elements to the map
+      tracks = appendTracks.foldLeft(tracks) { case (trackMap, (sledId, track)) =>
+        trackMap.get(sledId) match {
+          case Some(list) => trackMap.updated(sledId, track :: list)
+          case None       => trackMap + (sledId -> (track :: Nil))
+        }
+      }
+    }
+  }
+
+  // TODO remove this when debugging is done
+  private def printTracks(): Unit = {
+    tracks.foreach { case (id, seq) =>
+      val trackString = seq.mkString(" ")
+      println(s"$id.id -> $trackString")
     }
   }
 
