@@ -402,8 +402,9 @@ class GameControl(api: AppHostApi) extends AppController with GameState {
     * unless this game turn is within trackRecordInterval of the last time we recorded tracks */
   private def addNewTracks(): Unit = {
     // TODO move to GameConstants
+    // TODO figure out why trackRecordInterval only affects spawn time when above 750
     /** milliseconds between adding Track elements */
-    val trackRecordInterval = 500
+    val trackRecordInterval = 1000
 
     if (gameTime - lastTracks > trackRecordInterval) {
       lastTracks = gameTime
