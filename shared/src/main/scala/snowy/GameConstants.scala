@@ -8,7 +8,7 @@ object GameConstants {
   val absoluteMaxSpeed = 500
 
 //  /** The width and height of the playfield / map */
-  val oldPlayfieldSize = Vec2d(2800, 4800) // LATER remove this
+  val oldPlayfieldSize = Vec2d(1024 * 2 * 4, 1024 * 2 * 4) // LATER remove this
 
   /** max seconds for a normal weight sled to complete a skid at full speed */
   val maxSkidTime = 1.6

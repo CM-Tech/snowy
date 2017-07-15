@@ -8,19 +8,47 @@ import scala.collection.mutable
 import scala.scalajs.js.Dynamic
 
 object CreateGrid {
-  private val spacing     = 50
-  private val gridColumns = math.ceil(GameConstants.oldPlayfieldSize.x / spacing).toInt
-  private val gridRows    = math.ceil(GameConstants.oldPlayfieldSize.y / spacing).toInt
+  private val detail = 6
 
   // Plus one to include bottom and right borders
-  private val gridColumns1 = gridColumns + 1
-  private val gridRows1    = gridRows + 1
+  val gridColumns1 = math.pow(2, detail).toInt
+  val gridRows1    = math.pow(2, detail).toInt
 
-  private val heightMap: Seq[Double] = {
-    val randomHeights = mutable.Seq(
-      (for (_ <- 0 until gridColumns1 * gridRows1)
-        yield -(math.round(math.random) * 20).toDouble): _*
-    )
+  val gridColumns = gridColumns1 - 1
+  val gridRows    = gridRows1 - 1
+
+  def fractalizeGrid(grid: Array[Array[Double]], scale: Double): Array[Array[Double]] = {
+    val newGri = Array.ofDim[Double](grid.length * 2, grid(0).length * 2)
+    for {
+      i <- grid.indices
+      j <- grid(i).indices
+    } {
+      newGri(i * 2)(j * 2) = grid(i)(j)
+      newGri(i * 2 + 1)(j * 2) = (grid(i)(j) + grid((i + 1) % grid.length)(j)) / 2
+      newGri(i * 2)(j * 2 + 1) = (grid(i)(j) + grid(i)((j + 1) % grid(i).length)) / 2
+      newGri(i * 2 + 1)(j * 2 + 1) = (newGri(i * 2 + 1)(j * 2) + newGri(i * 2)(
+        j * 2 + 1
+      )) / 2
+    }
+    val r = new scala.util.Random(10324)
+    for {
+      i <- newGri.indices
+      j <- newGri(i).indices
+    } {
+      newGri(i)(j) = newGri(i)(j) + (r.nextDouble - 0.5) * scale * 2.0
+    }
+    newGri
+  }
+
+  val heightMap: Seq[Double] = {
+    //TODO: Replace this with a fold
+    var theGrid     = Array(Array(1.0))
+    val heightScale = 700.0
+    for (i <- 0 until detail) {
+      theGrid = fractalizeGrid(theGrid, heightScale / math.pow(2, i))
+    }
+
+    val randomHeights = mutable.Seq(theGrid.flatten.map(_ - 100): _*)
 
     // align heights at top and bottom so the seam isn't obvious when we wrap
     val lastRow = randomHeights.view(gridColumns1 * gridRows, randomHeights.size)
@@ -55,13 +83,13 @@ object CreateGrid {
     (heightMap3x1 ++ heightMap3x1 ++ heightMap3x1) ++ endRow
   }
 
-  private val material = new THREE.MeshLambertMaterial(
-    Dynamic
-      .literal(color = 0xe7f1fd, side = THREE.DoubleSide)
-      .asInstanceOf[MeshLambertMaterialParameters]
-  )
-
   def newGrid(): Mesh = {
+    val material = new THREE.MeshLambertMaterial(
+      Dynamic
+        .literal(color = 0xe7f1fd, side = THREE.DoubleSide)
+        .asInstanceOf[MeshLambertMaterialParameters]
+    )
+
     val grid = new THREE.PlaneGeometry(
       GameConstants.oldPlayfieldSize.x * 3,
       GameConstants.oldPlayfieldSize.y * 3,
@@ -74,7 +102,7 @@ object CreateGrid {
     }
 
     grid.computeFaceNormals()
-    grid.computeVertexNormals()
+    grid.computeFlatVertexNormals()
 
     val mesh = new THREE.Mesh(grid, material)
     mesh.rotation.x = 1.5 * math.Pi

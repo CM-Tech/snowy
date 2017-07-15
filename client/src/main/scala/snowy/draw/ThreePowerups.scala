@@ -44,7 +44,7 @@ class ThreePowerups(powerupGeo: THREE.Geometry) {
       powerup.radius
     )
 
-    newPowerup.position.set(powerup.position.x, 0, powerup.position.y)
+    DrawPlayfield.setThreePosition2(newPowerup, powerup.position, 0)
 
     newPowerup.name = powerup.id.id.toString
     powerupGroup.add(newPowerup)

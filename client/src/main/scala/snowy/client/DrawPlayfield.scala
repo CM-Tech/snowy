@@ -11,6 +11,7 @@ import snowy.playfield._
 import vector.Vec2d
 
 import scala.collection.mutable
+import scala.math.{ceil, floor}
 
 class UpdateGroup[A](val group: Object3D) {
   val map = {
@@ -29,6 +30,47 @@ class UpdateGroup[A](val group: Object3D) {
 }
 
 object DrawPlayfield {
+  val playfieldSize =
+    new Vector3(oldPlayfieldSize.x, 0, oldPlayfieldSize.y)
+  // TODO Lerp from grid neighbors
+  def gridHeight(myPos: Vec2d): Double = {
+    val itemX = myPos.x / oldPlayfieldSize.x * CreateGrid.gridColumns
+    val itemY = myPos.y / oldPlayfieldSize.y * CreateGrid.gridRows
+    //quadrants
+    //   2 | 1
+    //  ---|---
+    //   3 | 4
+    // 3 is floored position
+    def positiveX(squareX: Int): Int = (squareX + CreateGrid.gridColumns) % CreateGrid.gridColumns
+    def positiveY(squareY: Int): Int = (squareY + CreateGrid.gridRows) % CreateGrid.gridRows1
+    val index1 = positiveX(ceil(itemX).toInt) + positiveY(ceil(itemY).toInt) * CreateGrid.gridColumns1
+    val index2 = positiveX(floor(itemX).toInt) + positiveY(ceil(itemY).toInt) * CreateGrid.gridColumns1
+    val index3 = positiveX(floor(itemX).toInt) + positiveY(floor(itemY).toInt) * CreateGrid.gridColumns1
+    val index4 = positiveX(ceil(itemX).toInt) + positiveY(floor(itemY).toInt) * CreateGrid.gridColumns1
+    val interX = itemX - floor(itemX)
+    val interY = itemY - floor(itemY)
+    //TODO: Choose which triangle
+    (CreateGrid.heightMap(index1) * (    interX) + CreateGrid.heightMap(index2) * (1 - interX)) * (    interY) +
+    (CreateGrid.heightMap(index3) * (1 - interX) + CreateGrid.heightMap(index4) * (    interX)) * (1 - interY)
+  }
+
+  def setThreePosition(obj: Object3D,
+                       playfieldItem: Vec2d,
+                       myPos: Vector3,
+                       heightOffset: Double): Unit = {
+    val newPos = playfieldWrap(obj, playfieldItem, myPos)
+    obj.position.y = gridHeight(playfieldItem) + heightOffset
+  }
+
+  def setThreePosition2(obj: Object3D,
+                        playfieldItem: Vec2d,
+                        heightOffset: Double): Unit = {
+    obj.position.set(
+      playfieldItem.x,
+      gridHeight(playfieldItem) + heightOffset,
+      playfieldItem.y
+    )
+  }
 
   /** if the object's position is closer to the wrapped side
     * returns the position with */
@@ -58,6 +100,7 @@ class DrawPlayfield(renderer: WebGLRenderer,
                     val threeSleds: ThreeSleds,
                     val threeSnowballs: ThreeSnowballs,
                     val threePowerups: ThreePowerups) {
+  import DrawPlayfield._
   val scene = new THREE.Scene()
   val camera =
     new THREE.PerspectiveCamera(45, math.min(getWidth / getHeight, 3), 1, 5000)
@@ -93,7 +136,11 @@ class DrawPlayfield(renderer: WebGLRenderer,
                     trees: Set[Tree],
                     border: Vec2d): Unit = {
     stats.begin()
-    val myPos = new Vector3(mySled.position.x, 2.9 * mySled.radius, mySled.position.y)
+    val myPos = new Vector3(
+      mySled.position.x,
+      gridHeight(mySled.position) + 2.9 * mySled.radius,
+      mySled.position.y
+    )
     ThreeTrees.updateThreeTrees(trees, myPos)
     threeSnowballs.updateThreeSnowballs(snowballs, myPos)
     threeSleds.updateThreeSleds(sleds, mySled)

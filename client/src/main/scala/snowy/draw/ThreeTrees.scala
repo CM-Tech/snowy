@@ -19,7 +19,7 @@ object ThreeTrees {
   def createTree(tree: Tree, myPos: Vector3): Object3D = {
     val newTree: Object3D = CreateTree.randomTree()
 
-    DrawPlayfield.playfieldWrap(newTree, tree.position, myPos)
+    DrawPlayfield.setThreePosition(newTree, tree.position, myPos, 0)
 
     newTree.name = tree.id.id.toString
     newTree
